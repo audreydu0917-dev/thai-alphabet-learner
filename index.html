@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Alphabet Learner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: #1e293b;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab-btn {
+      background: #1e293b;
+      border: none;
+      color: #94a3b8;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .tab-btn.active {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Alphabet Grid */
+    .alpha-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .alpha-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .alpha-card:hover {
+      transform: translateY(-2px);
+      border-color: #38bdf8;
+    }
+
+    .alpha-card.mastered {
+      border-color: #22c55e;
+      background: linear-gradient(135deg, #1e293b 0%, #14532d 100%);
+    }
+
+    .alpha-card.learning {
+      border-color: #f59e0b;
+    }
+
+    .alpha-card.new {
+      border-color: #64748b;
+    }
+
+    .alpha-char {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .alpha-pron {
+      font-size: 0.9rem;
+      color: #38bdf8;
+    }
+
+    .alpha-class {
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Flashcard Mode */
+    .flashcard-container {
+      perspective: 1000px;
+      margin-bottom: 24px;
+    }
+
+    .flashcard {
+      width: 100%;
+      max-width: 400px;
+      height: 280px;
+      margin: 0 auto;
+      cursor: pointer;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .flashcard.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .flashcard-front {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border: 2px solid #38bdf8;
+    }
+
+    .flashcard-back {
+      background: linear-gradient(135deg, #14532d 0%, #1e293b 100%);
+      border: 2px solid #22c55e;
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-char {
+      font-size: 5rem;
+      font-weight: 700;
+    }
+
+    .flashcard-hint {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 16px;
+    }
+
+    .flashcard-pron {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
+
+    .flashcard-vocab {
+      font-size: 1rem;
+      color: #94a3b8;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .flashcard-vocab span {
+      display: block;
+    }
+
+    .flashcard-class {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 12px;
+    }
+
+    .flashcard-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .flashcard-btn {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      color: #38bdf8;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .flashcard-btn:hover {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    .flashcard-btn.wrong {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .flashcard-btn.wrong:hover {
+      background: #ef4444;
+      color: white;
+    }
+
+    .flashcard-btn.correct {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .flashcard-btn.correct:hover {
+      background: #22c55e;
+      color: white;
+    }
+
+    /* Quiz Mode */
+    .quiz-container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .quiz-progress {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #334155;
+    }
+
+    .quiz-dot.correct {
+      background: #22c55e;
+    }
+
+    .quiz-dot.wrong {
+      background: #ef4444;
+    }
+
+    .quiz-dot.current {
+      background: #38bdf8;
+      transform: scale(1.3);
+    }
+
+    .quiz-card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .quiz-char {
+      font-size: 6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .quiz-class {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .quiz-choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .quiz-choice {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1.2rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .quiz-choice:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .quiz-choice.correct {
+      border-color: #22c55e;
+      background: #14532d;
+    }
+
+    .quiz-choice.wrong {
+      border-color: #ef4444;
+      background: #7f1d1d;
+    }
+
+    .quiz-choice:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Mistakes Section */
+    .mistakes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mistake-item {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-left: 4px solid #ef4444;
+    }
+
+    .mistake-char {
+      font-size: 2.5rem;
+      font-weight: 700;
+      min-width: 60px;
+    }
+
+    .mistake-info {
+      flex: 1;
+    }
+
+    .mistake-confused {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .mistake-count {
+      background: #7f1d1d;
+      color: #fca5a5;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #64748b;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .alpha-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+
+      .alpha-char {
+        font-size: 2rem;
+      }
+
+      .flashcard {
+        height: 240px;
+      }
+
+      .flashcard-char {
+        font-size: 4rem;
+      }
+
+      .quiz-char {
+        font-size: 4rem;
+      }
+
+      .quiz-choices {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Thai Alphabet Learner</h1>
+    <p class="subtitle">Master the 44 Thai consonants with spaced repetition</p>
+
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value" id="stat-new">0</div>
+        <div class="stat-label">New</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-learning">0</div>
+        <div class="stat-label">Learning</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-mastered">0</div>
+        <div class="stat-label">Mastered</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-due">0</div>
+        <div class="stat-label">Due Today</div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-tab="alphabet">Alphabet</button>
+      <button class="tab-btn" data-tab="flashcard">Flashcards</button>
+      <button class="tab-btn" data-tab="quiz">Quiz</button>
+      <button class="tab-btn" data-tab="mistakes">Mistakes</button>
+    </div>
+
+    <!-- Alphabet Section -->
+    <div class="section active" id="section-alphabet">
+      <div class="alpha-grid" id="alpha-grid"></div>
+    </div>
+
+    <!-- Flashcard Section -->
+    <div class="section" id="section-flashcard">
+      <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-face flashcard-front">
+            <div class="flashcard-char" id="fc-char">ก</div>
+            <div class="flashcard-hint">Click to reveal</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <div class="flashcard-pron" id="fc-pron">gor</div>
+            <div class="flashcard-class" id="fc-class">Mid Class</div>
+            <div class="flashcard-vocab" id="fc-vocab"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-nav">
+        <button class="flashcard-btn wrong" id="fc-wrong">Got Wrong</button>
+        <button class="flashcard-btn correct" id="fc-correct">Got Right</button>
+      </div>
+      <p style="text-align: center; color: #64748b; margin-top: 16px; font-size: 0.9rem;">
+        Click card to flip | Use buttons to mark your answer
+      </p>
+    </div>
+
+    <!-- Quiz Section -->
+    <div class="section" id="section-quiz">
+      <div class="quiz-container">
+        <div class="quiz-progress" id="quiz-progress"></div>
+        <div class="quiz-card">
+          <div class="quiz-char" id="quiz-char">ก</div>
+          <div class="quiz-class" id="quiz-class">Mid Class</div>
+        </div>
+        <div class="quiz-choices" id="quiz-choices"></div>
+      </div>
+    </div>
+
+    <!-- Mistakes Section -->
+    <div class="section" id="section-mistakes">
+      <div class="mistakes-list" id="mistakes-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // Thai Alphabet Data with Vocabulary
+    const THAI_ALPHABET = [
+      { char: 'ก', pron: 'gor', cls: 'Mid', vocab: ['กรง (cage)', 'กานต์ (kan)', 'กิน (to eat)'] },
+      { char: 'ข', pron: 'khor', cls: 'High', vocab: ['ขนม (sweets)', 'ขา (leg)', 'ขวด (bottle)'] },
+      { char: 'ฃ', pron: 'khor', cls: 'High', vocab: ['ฃวด (bottle - old)', 'ฃน (to rub)'] },
+      { char: 'ค', pron: 'khor', cls: 'Low', vocab: ['คน (person)', 'ความ (matter)', 'คุณ (you/merit)'] },
+      { char: 'ฅ', pron: 'khor', cls: 'Low', vocab: ['ฅน (person - old form)'] },
+      { char: 'ฆ', pron: 'khor', cls: 'Low', vocab: ['ฆ่า (to kill)', 'ฆน (ant)'] },
+      { char: 'ง', pron: 'ngor', cls: 'Low', vocab: ['งาน (work)', 'งู (snake)', 'เงิน (money)'] },
+      { char: 'จ', pron: 'jor', cls: 'Mid', vocab: ['จาน (plate)', 'จิน (Jin)', 'จัน (Chan)'] },
+      { char: 'ฉ', pron: 'chor', cls: 'High', vocab: ['ฉัน (I)', 'ฉลาด (smart)', 'ฉุก (suddenly)'] },
+      { char: 'ช', pron: 'chor', cls: 'Low', vocab: ['ช้าง (elephant)', 'ชาติ (nation)', 'ชุม (dense)'] },
+      { char: 'ซ', pron: 'sor', cls: 'Low', vocab: ['ซ้าย (left)', 'ซุม (to soak)', 'ซ่อม (to repair)'] },
+      { char: 'ฌ', pron: 'chor', cls: 'Low', vocab: ['ฌาน (meditation)'] },
+      { char: 'ญ', pron: 'yor', cls: 'Low', vocab: ['ญี่ปุ่น (Japan)', 'ญาติ (relative)'] },
+      { char: 'ฎ', pron: 'dor', cls: 'Mid', vocab: ['ฎีกา (petition)'] },
+      { char: 'ฏ', pron: 'tor', cls: 'Mid', vocab: ['ฏีกา (petition - old)'] },
+      { char: 'ฐ', pron: 'thor', cls: 'High', vocab: ['ฐาน (base)', 'ฐิ (slowly)'] },
+      { char: 'ฑ', pron: 'thor', cls: 'Low', vocab: ['มณโฑ (Monthon)'] },
+      { char: 'ฒ', pron: 'thor', cls: 'Low', vocab: ['ฒน (to endure)'] },
+      { char: 'ณ', pron: 'nor', cls: 'Low', vocab: ['ณาล (then)', 'นักณรรค (monk)'] },
+      { char: 'ด', pron: 'dor', cls: 'Mid', vocab: ['ดอก (flower)', 'ดี (good)', 'ดาว (star)'] },
+      { char: 'ต', pron: 'tor', cls: 'Mid', vocab: ['ตา (eye)', 'ไต้ (great)', 'ตัว (self)'] },
+      { char: 'ถ', pron: 'thor', cls: 'High', vocab: ['ถนน (road)', 'ถาม (to ask)', 'ถือ (to hold)'] },
+      { char: 'ท', pron: 'thor', cls: 'Low', vocab: ['ทาง (road)', 'ทหาร (soldier)', 'ทำ (to do)'] },
+      { char: 'ธ', pron: 'thor', cls: 'Low', vocab: ['ธนาคาร (bank)', 'ธรรม (dharma)'] },
+      { char: 'น', pron: 'nor', cls: 'Low', vocab: ['น้ำ (water)', 'ไนต์ (night)', 'หนู (mouse)'] },
+      { char: 'บ', pron: 'bor', cls: 'Mid', vocab: ['บ้าน (house)', 'ใหญ่ (big)', 'มะบะ (basil)'] },
+      { char: 'ป', pron: 'por', cls: 'Mid', vocab: ['ปลา (fish)', 'ปาก (mouth)', 'ป้า (aunt)'] },
+      { char: 'ผ', pron: 'phor', cls: 'High', vocab: ['ผู้ (person)', 'ผึ้ง (bee)', 'ผม (I/hair)'] },
+      { char: 'ฝ', pron: 'for', cls: 'High', vocab: ['ฝน (rain)', 'ฝา (lid)', 'ฝึก (to practice)'] },
+      { char: 'พ', pron: 'phor', cls: 'Low', vocab: ['พี่ (older sibling)', 'พัง (ruined)', 'พาน (tray)'] },
+      { char: 'ฟ', pron: 'for', cls: 'Low', vocab: ['ฟัง (to listen)', 'ฟ้า (sky)', 'ฟรี (free)'] },
+      { char: 'ภ', pron: 'phor', cls: 'Low', vocab: ['ภาษา (language)', 'ภูมิ (land)'] },
+      { char: 'ม', pron: 'mor', cls: 'Mid', vocab: ['ม้า (horse)', 'แม่ (mother)', 'มือ (hand)'] },
+      { char: 'ย', pron: 'yor', cls: 'Low', vocab: ['ยี่ (two)', 'ยาย (maternal grandma)', 'ยม (death)'] },
+      { char: 'ร', pron: 'ror', cls: 'Low', vocab: ['รถ (car)', 'เรา (we)', 'ไร่ (ranch)'] },
+      { char: 'ล', pron: 'lor', cls: 'Low', vocab: ['ลิง (monkey)', 'ลม (wind)', 'เล็ก (small)'] },
+      { char: 'ว', pron: 'wor', cls: 'Low', vocab: ['วัน (day)', 'ว่า (that/to say)', 'สวย (beautiful)'] },
+      { char: 'ศ', pron: 'sor', cls: 'High', vocab: ['ศาสตร์ (science)', 'ศูนย์ (zero/center)'] },
+      { char: 'ษ', pron: 'sor', cls: 'High', vocab: ['ษา (hereditary title)'] },
+      { char: 'ส', pron: 'sor', cls: 'High', vocab: ['สวย (beautiful)', 'สาม (three)', 'สุนัข (dog)'] },
+      { char: 'ห', pron: 'hor', cls: 'High', vocab: ['หนึ่ง (one)', 'หมา (dog)', 'หัว (head)'] },
+      { char: 'ฬ', pron: 'lor', cls: 'Low', vocab: ['ฬอ (bell)'] },
+      { char: 'อ', pron: 'or', cls: 'Mid', vocab: ['อาหาร (food)', 'อย่าง (like)', 'อก (chest)'] },
+      { char: 'ฮ', pron: 'hor', cls: 'Low', vocab: ['นกฮูก (owl)', 'ฮา (ha!)'] }
+    ];
+
+    // Ebbinghaus intervals in milliseconds
+    const INTERVALS = {
+      new: 0,
+      learning: 60 * 60 * 1000,        // 1 hour
+      reviewing: [
+        60 * 60 * 1000,                 // 1 hour
+        24 * 60 * 60 * 1000,            // 1 day
+        3 * 24 * 60 * 60 * 1000,        // 3 days
+        7 * 24 * 60 * 60 * 1000,        // 7 days
+        14 * 24 * 60 * 60 * 1000,       // 14 days
+        30 * 24 * 60 * 60 * 1000,       // 30 days
+      ]
+    };
+
+    // App State
+    let state = {
+      alphabet: {},
+      mistakes: {},
+      currentFlashcard: 0,
+      flashcardQueue: [],
+      quizQueue: [],
+      quizIndex: 0,
+      quizResults: []
+    };
+
+    // Initialize alphabet state
+    function initAlphabetState() {
+      THAI_ALPHABET.forEach((letter, index) => {
+        if (!state.alphabet[index]) {
+          state.alphabet[index] = {
+            status: 'new',
+            intervalIndex: 0,
+            nextReview: Date.now(),
+            reviewCount: 0
+          };
+        }
+      });
+    }
+
+    // Load state from localStorage
+    function loadState() {
+      const saved = localStorage.getItem('thaiLearnerState');
+      if (saved) {
+        state = JSON.parse(saved);
+      }
+      initAlphabetState();
+    }
+
+    // Save state to localStorage
+    function saveState() {
+      localStorage.setItem('thaiLearnerState', JSON.stringify(state));
+    }
+
+    // Get due cards count
+    function getDueCount() {
+      let count = 0;
+      const now = Date.now();
+      Object.keys(state.alphabet).forEach(key => {
+        const item = state.alphabet[key];
+        if (item.status === 'new' || item.nextReview <= now) {
+          count++;
+        }
+      });
+      return count;
+    }
+
+    // Get status counts
+    function getStatusCounts() {
+      let newCount = 0, learning = 0, mastered = 0;
+      Object.keys(state.alphabet).forEach(key => {
+        const item = state.alphabet[key];
+        if (item.status === 'new') newCount++;
+        else if (item.intervalIndex >= 4) mastered++;
+        else learning++;
+      });
+      return { new: newCount, learning, mastered };
+    }
+
+    // Update stats display
+    function updateStats() {
+      const counts = getStatusCounts();
+      document.getElementById('stat-new').textContent = counts.new;
+      document.getElementById('stat-learning').textContent = counts.learning;
+      document.getElementById('stat-mastered').textContent = counts.mastered;
+      document.getElementById('stat-due').textContent = getDueCount();
+    }
+
+    // Render alphabet grid
+    function renderAlphaGrid() {
+      const grid = document.getElementById('alpha-grid');
+      grid.innerHTML = '';
+
+      THAI_ALPHABET.forEach((letter, index) => {
+        const item = state.alphabet[index];
+        const card = document.createElement('div');
+        card.className = `alpha-card ${item.status}`;
+        card.innerHTML = `
+          <div class="alpha-char">${letter.char}</div>
+          <div class="alpha-pron">${letter.pron}</div>
+          <div class="alpha-class">${letter.cls}</div>
+        `;
+        card.addEventListener('click', () => openFlashcardAt(index));
+        grid.appendChild(card);
+      });
+    }
+
+    // Build flashcard queue (prioritize due cards)
+    function buildFlashcardQueue() {
+      const now = Date.now();
+      const queue = [];
+
+      THAI_ALPHABET.forEach((_, index) => {
+        const item = state.alphabet[index];
+        if (item.status === 'new' || item.nextReview <= now) {
+          queue.push({ index, priority: item.status === 'new' ? 0 : 1 });
+        }
+      });
+
+      queue.sort((a, b) => a.priority - b.priority);
+      state.flashcardQueue = queue.map(q => q.index);
+      state.currentFlashcard = 0;
+    }
+
+    // Open flashcard at specific index
+    function openFlashcardAt(index) {
+      state.currentFlashcard = state.flashcardQueue.indexOf(index);
+      if (state.currentFlashcard === -1) {
+        state.currentFlashcard = state.flashcardQueue.length;
+        state.flashcardQueue.push(index);
+      }
+      showFlashcard();
+      switchTab('flashcard');
+    }
+
+    // Show current flashcard
+    function showFlashcard() {
+      if (state.flashcardQueue.length === 0) {
+        buildFlashcardQueue();
+      }
+
+      if (state.currentFlashcard >= state.flashcardQueue.length) {
+        buildFlashcardQueue();
+        state.currentFlashcard = 0;
+      }
+
+      if (state.flashcardQueue.length === 0) return;
+
+      const index = state.flashcardQueue[state.currentFlashcard];
+      const letter = THAI_ALPHABET[index];
+
+      document.getElementById('fc-char').textContent = letter.char;
+      document.getElementById('fc-pron').textContent = letter.pron;
+      document.getElementById('fc-class').textContent = `${letter.cls} Class`;
+      document.getElementById('fc-vocab').innerHTML = letter.vocab.map(v => `<span>${v}</span>`).join('');
+
+      const flashcard = document.getElementById('flashcard');
+      flashcard.classList.remove('flipped');
+    }
+
+    // Handle flashcard answer
+    function answerFlashcard(correct) {
+      const index = state.flashcardQueue[state.currentFlashcard];
+      const item = state.alphabet[index];
+
+      if (correct) {
+        if (item.status === 'new') {
+          item.status = 'learning';
+          item.intervalIndex = 0;
+        }
+
+        item.intervalIndex++;
+        if (item.intervalIndex >= INTERVALS.reviewing.length) {
+          item.status = 'mastered';
+        }
+
+        item.nextReview = Date.now() + INTERVALS.reviewing[Math.min(item.intervalIndex, INTERVALS.reviewing.length - 1)];
+        item.reviewCount++;
+      } else {
+        item.status = 'learning';
+        item.intervalIndex = 0;
+        item.nextReview = Date.now() + INTERVALS.learning;
+
+        // Track mistake
+        if (!state.mistakes[index]) {
+          state.mistakes[index] = { count: 0, confusedWith: {} };
+        }
+        state.mistakes[index].count++;
+      }
+
+      saveState();
+      updateStats();
+      state.currentFlashcard++;
+      showFlashcard();
+    }
+
+    // Build quiz queue
+    function buildQuizQueue() {
+      const queue = [...Array(THAI_ALPHABET.length).keys()];
+      // Shuffle
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+      state.quizQueue = queue;
+      state.quizIndex = 0;
+      state.quizResults = [];
+    }
+
+    // Show quiz progress dots
+    function renderQuizProgress() {
+      const container = document.getElementById('quiz-progress');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 10; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'quiz-dot';
+        if (i < state.quizResults.length) {
+          dot.classList.add(state.quizResults[i] ? 'correct' : 'wrong');
+        } else if (i === state.quizResults.length) {
+          dot.classList.add('current');
+        }
+        container.appendChild(dot);
+      }
+    }
+
+    // Show quiz question
+    function showQuiz() {
+      if (state.quizQueue.length === 0 || state.quizIndex >= state.quizQueue.length) {
+        buildQuizQueue();
+        state.quizIndex = 0;
+        state.quizResults = [];
+      }
+
+      if (state.quizResults.length >= 10) {
+        showQuizSummary();
+        return;
+      }
+
+      const index = state.quizQueue[state.quizIndex];
+      const letter = THAI_ALPHABET[index];
+
+      document.getElementById('quiz-char').textContent = letter.char;
+      document.getElementById('quiz-class').textContent = `${letter.cls} Class`;
+
+      // Generate choices
+      const choices = [index];
+      while (choices.length < 4) {
+        const randIndex = Math.floor(Math.random() * THAI_ALPHABET.length);
+        if (!choices.includes(randIndex)) {
+          choices.push(randIndex);
+        }
+      }
+
+      // Shuffle choices
+      for (let i = choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+
+      const choicesContainer = document.getElementById('quiz-choices');
+      choicesContainer.innerHTML = '';
+
+      choices.forEach(choiceIndex => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-choice';
+        btn.textContent = THAI_ALPHABET[choiceIndex].pron;
+        btn.addEventListener('click', () => checkQuizAnswer(choiceIndex, index, btn));
+        choicesContainer.appendChild(btn);
+      });
+
+      renderQuizProgress();
+    }
+
+    // Check quiz answer
+    function checkQuizAnswer(selected, correct, btnEl) {
+      const correctBtn = btnEl;
+
+      // Disable all buttons
+      document.querySelectorAll('.quiz-choice').forEach(btn => {
+        btn.disabled = true;
+        if (THAI_ALPHABET.indexOf(btn.textContent) === -1) {
+          // Find the actual correct button
+        }
+      });
+
+      // Find correct button
+      document.querySelectorAll('.quiz-choice').forEach((btn, i) => {
+        const pron = btn.textContent;
+        const actualIndex = THAI_ALPHABET.findIndex(l => l.pron === pron);
+        if (actualIndex === correct) {
+          btn.classList.add('correct');
+        }
+      });
+
+      const isCorrect = selected === correct;
+      state.quizResults.push(isCorrect);
+
+      if (!isCorrect) {
+        btnEl.classList.add('wrong');
+
+        // Track mistake
+        if (!state.mistakes[correct]) {
+          state.mistakes[correct] = { count: 0, confusedWith: {} };
+        }
+        state.mistakes[correct].count++;
+        state.mistakes[correct].confusedWith[selected] = (state.mistakes[correct].confusedWith[selected] || 0) + 1;
+
+        // Update letter status
+        const item = state.alphabet[correct];
+        item.status = 'learning';
+        item.intervalIndex = 0;
+        item.nextReview = Date.now() + INTERVALS.learning;
+      } else {
+        // Update letter status
+        const item = state.alphabet[correct];
+        if (item.status === 'new') {
+          item.status = 'learning';
+          item.intervalIndex = 0;
+        }
+        item.intervalIndex++;
+        if (item.intervalIndex >= INTERVALS.reviewing.length) {
+          item.status = 'mastered';
+        }
+        item.nextReview = Date.now() + INTERVALS.reviewing[Math.min(item.intervalIndex, INTERVALS.reviewing.length - 1)];
+        item.reviewCount++;
+      }
+
+      saveState();
+      updateStats();
+      renderQuizProgress();
+
+      // Next question after delay
+      setTimeout(() => {
+        state.quizIndex++;
+        showQuiz();
+      }, 1000);
+    }
+
+    // Show quiz summary
+    function showQuizSummary() {
+      const correct = state.quizResults.filter(r => r).length;
+      document.getElementById('quiz-char').textContent = `${correct}/10`;
+      document.getElementById('quiz-class').textContent = 'Correct Answers';
+
+      const choicesContainer = document.getElementById('quiz-choices');
+      choicesContainer.innerHTML = `
+        <button class="quiz-choice" onclick="buildQuizQueue(); showQuiz();" style="grid-column: span 2;">
+          Try Again
+        </button>
+      `;
+
+      renderQuizProgress();
+    }
+
+    // Render mistakes
+    function renderMistakes() {
+      const container = document.getElementById('mistakes-list');
+      const mistakes = Object.keys(state.mistakes)
+        .map(key => ({ index: parseInt(key), ...state.mistakes[key] }))
+        .filter(m => m.count > 0)
+        .sort((a, b) => b.count - a.count);
+
+      if (mistakes.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🎉</div>
+            <p>No mistakes yet! Keep practicing.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = mistakes.map(m => {
+        const letter = THAI_ALPHABET[m.index];
+        const confusedList = Object.keys(m.confusedWith)
+          .map(key => THAI_ALPHABET[parseInt(key)].char)
+          .join(', ');
+        return `
+          <div class="mistake-item">
+            <div class="mistake-char">${letter.char}</div>
+            <div class="mistake-info">
+              <div class="alpha-pron">${letter.pron}</div>
+              <div class="mistake-confused">Confused with: ${confusedList}</div>
+            </div>
+            <div class="mistake-count">${m.count}x</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.toggle('active', section.id === `section-${tabName}`);
+      });
+
+      if (tabName === 'flashcard') {
+        buildFlashcardQueue();
+        showFlashcard();
+      } else if (tabName === 'quiz') {
+        showQuiz();
+      } else if (tabName === 'mistakes') {
+        renderMistakes();
+      } else if (tabName === 'alphabet') {
+        renderAlphaGrid();
+      }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      updateStats();
+      renderAlphaGrid();
+
+      // Tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      // Flashcard
+      document.getElementById('flashcard').addEventListener('click', function() {
+        this.classList.toggle('flipped');
+      });
+
+      document.getElementById('fc-wrong').addEventListener('click', () => answerFlashcard(false));
+      document.getElementById('fc-correct').addEventListener('click', () => answerFlashcard(true));
+    });
+  </script>
+</body>
+</html>
