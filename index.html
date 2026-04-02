@@ -425,6 +425,53 @@
       box-shadow: 2px 2px 0 var(--kusama-black);
     }
 
+    .audio-btn {
+      background: var(--kusama-purple);
+      border: 4px solid var(--kusama-black);
+      padding: 10px 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      box-shadow: 4px 4px 0 var(--kusama-black);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .audio-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--kusama-black);
+      background: var(--kusama-pink);
+    }
+
+    .audio-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--kusama-black);
+    }
+
+    .audio-btn.playing {
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+
+    .quiz-audio-hint {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--kusama-black);
+      background: var(--kusama-white);
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 3px solid var(--kusama-black);
+      display: inline-block;
+    }
+
     .flashcard-btn.wrong {
       background: var(--kusama-red);
       color: var(--kusama-white);
@@ -767,6 +814,7 @@
           </div>
           <div class="flashcard-face flashcard-back">
             <div class="flashcard-pron" id="fc-pron">gor</div>
+            <button class="audio-btn" id="fc-audio" title="Play pronunciation">🔊</button>
             <div class="flashcard-vocab" id="fc-vocab"></div>
             <div class="flashcard-class" id="fc-class">Mid Class</div>
           </div>
@@ -785,6 +833,10 @@
         <div class="quiz-card">
           <div class="quiz-char" id="quiz-char">ก</div>
           <div class="quiz-class" id="quiz-class">Mid Class</div>
+        </div>
+        <div class="quiz-audio-hint">
+          <button class="audio-btn" id="quiz-audio" title="Play pronunciation" style="display: inline-flex; margin: 0 8px 0 0; padding: 8px 14px; font-size: 1.2rem; vertical-align: middle;">🔊</button>
+          Click speaker to hear, then pick the right pronunciation!
         </div>
         <div class="quiz-choices" id="quiz-choices"></div>
       </div>
@@ -871,8 +923,27 @@
       flashcardQueue: [],
       quizQueue: [],
       quizIndex: 0,
-      quizResults: []
+      quizResults: [],
+      currentQuizChar: null
     };
+
+    // Thai text-to-speech using Web Speech API
+    function speakThai(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'th-TH';
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        // Try to find a Thai voice
+        const voices = window.speechSynthesis.getVoices();
+        const thaiVoice = voices.find(v => v.lang.includes('th'));
+        if (thaiVoice) utterance.voice = thaiVoice;
+        window.speechSynthesis.speak(utterance);
+        return utterance;
+      }
+      return null;
+    }
 
     function initAlphabetState() {
       THAI_ALPHABET.forEach((_, index) => {
@@ -982,6 +1053,9 @@
       document.getElementById('fc-class').textContent = `${letter.cls} Class`;
       document.getElementById('fc-vocab').innerHTML = letter.vocab.map(v => `<span>${v}</span>`).join('');
       document.getElementById('flashcard').classList.remove('flipped');
+
+      // Auto-play pronunciation on flashcard show
+      setTimeout(() => speakThai(letter.char), 300);
     }
 
     function answerFlashcard(correct) {
@@ -1053,6 +1127,7 @@
 
       const index = state.quizQueue[state.quizIndex];
       const letter = THAI_ALPHABET[index];
+      state.currentQuizChar = letter;
       document.getElementById('quiz-char').textContent = letter.char;
       document.getElementById('quiz-class').textContent = `${letter.cls} Class`;
 
@@ -1076,6 +1151,9 @@
         choicesContainer.appendChild(btn);
       });
       renderQuizProgress();
+
+      // Auto-play pronunciation on quiz show
+      setTimeout(() => speakThai(letter.char), 300);
     }
 
     function checkQuizAnswer(selected, correct, btnEl) {
@@ -1194,16 +1272,50 @@
       updateStats();
       renderAlphaGrid();
 
+      // Load voices (needed for some browsers)
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
       });
 
-      document.getElementById('flashcard').addEventListener('click', function() {
-        this.classList.toggle('flipped');
+      document.getElementById('flashcard').addEventListener('click', function(e) {
+        // Don't flip if clicking audio button
+        if (e.target.id !== 'fc-audio') {
+          this.classList.toggle('flipped');
+        }
       });
 
       document.getElementById('fc-wrong').addEventListener('click', () => answerFlashcard(false));
       document.getElementById('fc-correct').addEventListener('click', () => answerFlashcard(true));
+
+      // Flashcard audio button
+      document.getElementById('fc-audio').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = state.flashcardQueue[state.currentFlashcard];
+        if (index !== undefined) {
+          const letter = THAI_ALPHABET[index];
+          const btn = e.target;
+          btn.classList.add('playing');
+          speakThai(letter.char);
+          setTimeout(() => btn.classList.remove('playing'), 500);
+        }
+      });
+
+      // Quiz audio button
+      document.getElementById('quiz-audio').addEventListener('click', (e) => {
+        if (state.currentQuizChar) {
+          const btn = e.currentTarget;
+          btn.classList.add('playing');
+          speakThai(state.currentQuizChar.char);
+          setTimeout(() => btn.classList.remove('playing'), 500);
+        }
+      });
     });
   </script>
 </body>
